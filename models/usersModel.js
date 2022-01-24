@@ -32,6 +32,10 @@ const usersSchema = new mongoose.Schema(
         "Minimum eight characters, at least one letter and one number is required for your password",
       ],
     },
+    accessLevel: {
+      type: Number,
+      default: parseInt(process.env.ACCESS_LEVEL_NORMAL_USER),
+    },
     ordered_cars: {
       type: Array,
       default: [],

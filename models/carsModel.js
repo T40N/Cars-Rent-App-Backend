@@ -15,6 +15,7 @@ const carsSchema = new mangoose.Schema(
     Acceleration: { type: Number },
     Year: { type: Date },
     Origin: { type: String },
+    Ordered: { type: Boolean, default: false },
   },
   {
     collection: "Cars",
