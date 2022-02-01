@@ -7,10 +7,6 @@ const validateEmail = (email) => {
 
 const usersSchema = new mongoose.Schema(
   {
-    _id: {
-      type: mongoose.Schema.Types.ObjectId,
-      required: true,
-    },
     name: { type: String, required: true },
     surname: { type: String, required: true },
     email: {
@@ -27,10 +23,6 @@ const usersSchema = new mongoose.Schema(
     password: {
       type: String,
       required: true,
-      match: [
-        /^(?=.*[A-Za-z])(?=.*\d)[A-Za-z\d]{8,}$/,
-        "Minimum eight characters, at least one letter and one number is required for your password",
-      ],
     },
     accessLevel: {
       type: Number,

@@ -1,5 +1,4 @@
-const express = require(`express`);
-const app = express();
+const app = require(`express`).Router();
 
 const carsModel = require("../models/carsModel");
 
@@ -34,7 +33,6 @@ app.put(`/cars/:id`, (req, res) => {
     }
   );
 });
-
 
 // delete one car
 app.delete(`/cars/:id`, (req, res) => {

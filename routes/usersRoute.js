@@ -1,33 +1,53 @@
-const express = require(`express`);
-const app = express();
+const router = require(`express`).Router();
 // jwt init
 const jwt = require("jsonwebtoken");
 //bycript initial needed with solt
 const bcrypt = require("bcryptjs");
-const salt = bcrypt.genSaltSync(PASSWORD_HASH_SALT_ROUNDS);
+const salt = bcrypt.genSaltSync(3);
 
 const usersModel = require("../models/usersModel");
 
 // add user with incryption
-app.post("/users/register", (req, res) => {
-  let user = await usersModel.findOne({ email: req.body.email });
-  if (user) {
-    return res.status(400).send("That user already exisits!");
-  } else {
-    let password = bcrypt.hashSync(req.body.password, salt);
-    user = new User({
-      name: req.body.name,
-      surname: req.body.surname,
-      email: req.body.email,
-      password: password,
-    });
-    usersModel.create(user, (error, data) => {
-      res.json(data);
-    });
-  }
+router.post(`/users/register`, (req, res) => {
+  console.log(req.body.email);
+  // If a user with this email does not already exist, then create new user
+  usersModel.findOne({ email: req.body.email }, (uniqueError, uniqueData) => {
+    if (uniqueData) {
+      res.json({ errorMessage: `User already exists` });
+    } else {
+      bcrypt.hash(
+        req.body.password,
+        parseInt(process.env.PASSWORD_HASH_SALT_ROUNDS),
+        (err, hash) => {
+          const user = {
+            name: req.body.name,
+            surname: req.body.surname,
+            email: req.body.email,
+            password: hash,
+          };
+          usersModel.create(user, (error, data) => {
+            console.log(error);
+            if (data) {
+              req.session.user = {
+                email: data.email,
+                accessLevel: data.accessLevel,
+              };
+              res.json({
+                name: data.name,
+                surname: data.email,
+                accessLevel: data.accessLevel,
+              });
+            } else {
+              res.json({ errorMessage: error });
+            }
+          });
+        }
+      );
+    }
+  });
 });
 
-app.post("/users/login", (req, res) => {
+router.post("/users/login", (req, res) => {
   usersModel.findOne({ email: req.body.email }, (error, data) => {
     if (data) {
       bcrypt.compare(req.body.password, data.password, (err, result) => {
@@ -57,10 +77,17 @@ router.get("/users/:email", (req, res) => {
   });
 });
 
-router.delete(`/users/:id`, (req, res) => {
+router.get(`/users`, (req, res) => {
+  usersModel.find((error, data) => {
+    console.log(error);
+    res.json(data);
+  });
+});
+
+router.delete(`/users/:id/:email`, (req, res) => {
   if (
     req.session.user.accessLevel >= process.env.ACCESS_LEVEL_ADMIN ||
-    req.session.user.id === req.params.id
+    req.session.user.email === req.params.email
   ) {
     usersModel.findByIdAndRemove(req.params.id, (error, data) => {
       res.json(data);
@@ -71,3 +98,15 @@ router.delete(`/users/:id`, (req, res) => {
     });
   }
 });
+
+module.exports = router;
+
+// user = new User({
+//   name: req.body.name,
+//   surname: req.body.surname,
+//   email: req.body.email,
+//   password: password,
+// });
+// usersModel.create(user, (error, data) => {
+//   res.json(data);
+// });

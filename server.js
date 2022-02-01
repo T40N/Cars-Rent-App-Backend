@@ -1,5 +1,6 @@
 require(`dotenv`).config({ path: `./config/.env` });
 require(`./config/db`);
+const createError = require("http-errors");
 
 const express = require("express");
 const app = express();
@@ -14,22 +15,29 @@ app.use(
 );
 
 app.use(require(`body-parser`).json());
+app.use(require(`cors`)({ credentials: true, origin: process.env.LOCAL_HOST }));
 
-app.use((req, res, next) => {
-  res.setHeader("Access-Control-Allow-Origin", "*");
-  res.setHeader(
-    "Access-Control-Allow-Headers",
-    "Origin, X-Requested-With, Content-Type, Accept"
-  );
-  res.setHeader(
-    "Access-Control-Allow-Methods",
-    "GET, POST, PATCH, DELETE, PUT, OPTIONS"
-  );
-  next();
+app.get("/", (res, req) => {
+  console.log("Here");
 });
 
-// routes here
+app.use(require(`./routes/carsRoute`));
+app.use(require(`./routes/usersRoute`));
 
-// port listen
+app.listen(process.env.SERVER_PORT, () => {
+  console.log(`Connected to port ` + process.env.SERVER_PORT);
+});
 
-// error handlers
+//Error 404
+app.use((req, res, next) => {
+  next(createError(404));
+});
+
+// Other errors
+app.use(function (err, req, res, next) {
+  console.error(err.message);
+  if (!err.statusCode) {
+    err.statusCode = 500;
+  }
+  res.status(err.statusCode).send(err.message);
+});
