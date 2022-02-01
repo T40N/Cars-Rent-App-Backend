@@ -52,9 +52,15 @@ router.post("/users/login", (req, res) => {
     if (data) {
       bcrypt.compare(req.body.password, data.password, (err, result) => {
         if (result) {
+          const token = jwt.sign(
+            { email: data.email, accessLevel: data.accessLevel },
+            process.env.JWT_PRIVATE_KEY,
+            { algorithm: "HS256", expiresIn: process.env.JWT_EXPIRY }
+          );
           req.session.user = {
             email: data.email,
             accessLevel: data.accessLevel,
+            token: token,
           };
           res.json({ name: data.name, accessLevel: data.accessLevel });
         }
@@ -100,13 +106,3 @@ router.delete(`/users/:id/:email`, (req, res) => {
 });
 
 module.exports = router;
-
-// user = new User({
-//   name: req.body.name,
-//   surname: req.body.surname,
-//   email: req.body.email,
-//   password: password,
-// });
-// usersModel.create(user, (error, data) => {
-//   res.json(data);
-// });
