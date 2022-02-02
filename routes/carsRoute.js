@@ -18,27 +18,64 @@ app.get("/cars/:id", (req, res) => {
 
 // add new car
 app.post(`/cars`, (req, res) => {
-  carsModel.create(req.body, (error, data) => {
-    res.json(data);
-  });
+  console.log(req.headers.authorization);
+  if (typeof req.session.user === `undefined`) {
+    res.json({ errorMessage: `User is not logged in` });
+  } else {
+    if (
+      req.session.user.accessLevel !== `undefined` &&
+      req.session.user.accessLevel >= process.env.ACCESS_LEVEL_ADMIN
+    ) {
+      carsModel.create(req.body, (error, data) => {
+        res.json(data);
+      });
+    } else {
+      res.json({
+        errorMessage: `User is not an administrator, so they cannot add new records`,
+      });
+    }
+  }
 });
 
 // update one car
 app.put(`/cars/:id`, (req, res) => {
-  carsModel.findByIdAndUpdate(
-    req.params.id,
-    { $set: req.body },
-    (error, data) => {
-      res.json(data);
+  if (typeof req.session.user === `undefined`) {
+    res.json({ errorMessage: `User is not logged in` });
+  } else {
+    if (
+      req.session.user.accessLevel !== `undefined` &&
+      req.session.user.accessLevel >= process.env.ACCESS_LEVEL_NORMAL_USER
+    ) {
+      carsModel.findByIdAndUpdate(
+        req.params.id,
+        { $set: req.body },
+        (error, data) => {
+          res.json(data);
+        }
+      );
+    } else {
+      res.json({
+        errorMessage: `User is not logged in, so they cannot update cars`,
+      });
     }
-  );
+  }
 });
 
 // delete one car
 app.delete(`/cars/:id`, (req, res) => {
-  carsModel.findByIdAndRemove(req.params.id, (error, data) => {
-    res.json(data);
-  });
+  if (typeof req.session.user === `undefined`) {
+    res.json({ errorMessage: `User is not logged in` });
+  } else {
+    if (req.session.user.accessLevel >= process.env.ACCESS_LEVEL_ADMIN) {
+      carsModel.findByIdAndRemove(req.params.id, (error, data) => {
+        res.json(data);
+      });
+    } else {
+      res.json({
+        errorMessage: `User is not an administrator, so they cannot delete records`,
+      });
+    }
+  }
 });
 
 module.exports = app;
