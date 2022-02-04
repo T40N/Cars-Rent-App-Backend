@@ -65,6 +65,8 @@ router.post("/users/login", (req, res) => {
           res.json({ name: data.name, accessLevel: data.accessLevel });
         }
       });
+    } else {
+      res.json({ errorMessage: error });
     }
   });
 });
@@ -91,18 +93,9 @@ router.get(`/users`, (req, res) => {
 });
 
 router.delete(`/users/:id/:email`, (req, res) => {
-  if (
-    req.session.user.accessLevel >= process.env.ACCESS_LEVEL_ADMIN ||
-    req.session.user.email === req.params.email
-  ) {
-    usersModel.findByIdAndRemove(req.params.id, (error, data) => {
-      res.json(data);
-    });
-  } else {
-    res.json({
-      errorMessage: `User is not an administrator or owner of the accunt, so they cannot delete records`,
-    });
-  }
+  usersModel.findByIdAndRemove(req.params.id, (error, data) => {
+    res.json(data);
+  });
 });
 
 module.exports = router;

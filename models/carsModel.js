@@ -2,11 +2,7 @@ const mongoose = require(`mongoose`);
 
 const carsSchema = new mongoose.Schema(
   {
-    _id: {
-      type: mongoose.Schema.Types.ObjectId,
-      required: true,
-    },
-    name: { type: String },
+    Name: { type: String },
     Miles_per_Gallon: { type: Number },
     Cylinders: { type: Number },
     Displacement: { type: Number },
